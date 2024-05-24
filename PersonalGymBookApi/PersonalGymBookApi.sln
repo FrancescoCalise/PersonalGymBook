@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersonalGymBookApi", "PersonalGymBookApi.csproj", "{864CAA19-6046-40C8-B589-FD9233C4A763}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalGymBookApi", "PersonalGymBookApi.csproj", "{3B1AA885-FBE2-404F-B96D-F2EF36D8CF4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{864CAA19-6046-40C8-B589-FD9233C4A763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{864CAA19-6046-40C8-B589-FD9233C4A763}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{864CAA19-6046-40C8-B589-FD9233C4A763}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{864CAA19-6046-40C8-B589-FD9233C4A763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B1AA885-FBE2-404F-B96D-F2EF36D8CF4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B1AA885-FBE2-404F-B96D-F2EF36D8CF4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B1AA885-FBE2-404F-B96D-F2EF36D8CF4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B1AA885-FBE2-404F-B96D-F2EF36D8CF4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9BD73787-503D-4988-8FFA-0D10FB2FD0B4}
+		SolutionGuid = {397AE1DB-1E1A-458D-89F1-B90E0F6014BB}
 	EndGlobalSection
 EndGlobal
