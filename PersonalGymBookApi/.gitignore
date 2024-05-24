@@ -1,0 +1,107 @@
+# Ignore build output directories
+bin/
+obj/
+wwwroot/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files from Visual Studio
+.vscode/
+.vscode/*
+.vs/
+.vs/*
+
+# Rider project files
+.idea/
+.idea/*
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore any application database files
+*.mdf
+*.ldf
+
+# Ignore node_modules directory
+node_modules/
+jspm_packages/
+
+# Ignore Bower directory
+bower_components/
+
+# Ignore environment files
+.env
+
+# Ignore .NET core configuration files
+appsettings*.json
+app.config
+web.config
+
+# Ignore package files
+*.nupkg
+*.snupkg
+
+# Ignore compiled files
+*.dll
+*.exe
+*.pdb
+*.dbmdl
+*.log
+*.vspscc
+*.vssscc
+*.vspscc
+
+# Ignore macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear when mounting a volume
+.Spotlight-V100
+.Trashes
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# WebAssembly artifacts
+dist/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Rider specific files
+.idea/
+*.idea
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
