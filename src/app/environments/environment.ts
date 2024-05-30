@@ -9,7 +9,9 @@ export const environment = {
     storageBucket: "personalgymbook.appspot.com",
     messagingSenderId: "730757104220",
     appId: "1:730757104220:web:a25fc90f977ad383371c99",
-    measurementId: "G-8092BY6Y3G"
+    measurementId: "G-8092BY6Y3G",
+    locationId: "europe-west",
+    databaseURL: "https://personalgymbook-default-rtdb.europe-west1.firebasedatabase.app"
   } as FirebaseOptions
   
   
