@@ -1,50 +1,79 @@
+import { Firestore, collection, query, where, collectionData, doc, docData, addDoc, setDoc, deleteDoc } from '@angular/fire/firestore';
 import { Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, doc, setDoc, deleteDoc, updateDoc, docData } from '@angular/fire/firestore';
+import { AuthService, User } from './auth.service';
 import { Observable } from 'rxjs';
-
-export interface Item {
-  id: string;
-  name: string;
-  description: string;
-}
+import { BaseDocument } from '../interface/models';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
-export class FirestoreService {
-  private itemsCollection = collection(this.firestore, 'items');
+export class FirestoreService<T extends BaseDocument> {
+  private collectionName!: string;
 
-  constructor(private firestore: Firestore) {}
+  constructor(private firestore: Firestore, private auth: AuthService) { }
 
-  getItems(): Observable<Item[]> {
-    console.log('Fetching items from Firestore...');
-    return collectionData(this.itemsCollection, { idField: 'id' }) as Observable<Item[]>;
+  setCollectionName(collectionName: string) {
+    this.collectionName = collectionName;
   }
 
-  getItem(id: string): Observable<Item> {
-    const itemDocRef = doc(this.firestore, `items/${id}`);
-    return docData(itemDocRef, { idField: 'id' }) as Observable<Item>;
+  private async getAuthenticatedUser(): Promise<User> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      throw new Error('User is not authenticated');
+    }
+    return user;
   }
 
-  addItem(item: Item): Promise<void> {
-    const itemDocRef = doc(this.itemsCollection); // Genera un nuovo documento con ID automatico
-    console.log('Adding item to Firestore:', { ...item, id: itemDocRef.id });
-    return setDoc(itemDocRef, { ...item, id: itemDocRef.id }).then(() => {
-      console.log('Item successfully added:', item);
-    }).catch(error => {
-      console.error('Error adding item to Firestore:', error);
-    });
+  async getItems(): Promise<Observable<T[]>> {
+    const user = await this.getAuthenticatedUser();
+    const colRef = collection(this.firestore, this.collectionName);
+    const q = query(colRef, where('ownerId', '==', user.uid));
+    return collectionData(q, { idField: 'id' }) as Observable<T[]>;
   }
 
-  updateItem(item: Item): Promise<void> {
-    const itemDocRef = doc(this.firestore, `items/${item.id}`);
-    console.log('Updating item in Firestore:', item);
-    return updateDoc(itemDocRef, { ...item });
+  async getItem(id: string): Promise<Observable<T | undefined>> {
+    await this.getAuthenticatedUser();
+    const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
+    return docData(docRef, { idField: 'id' }) as Observable<T | undefined>;
   }
 
-  deleteItem(id: string): Promise<void> {
-    const itemDocRef = doc(this.firestore, `items/${id}`);
-    console.log('Deleting item from Firestore:', id);
-    return deleteDoc(itemDocRef);
+  async addItem(item: T): Promise<boolean> {
+    const user = await this.getAuthenticatedUser();
+    try {
+      const colRef = collection(this.firestore, this.collectionName);
+      item.ownerId = user.uid;
+      debugger;
+      let data = await addDoc(colRef, item);
+      debugger;
+      return data ? true : false;
+    } catch (e) {
+      console.error('Error adding item: ', e);
+      return false;
+    }
+  }
+
+  async updateItem(item: T): Promise<boolean> {
+    await this.getAuthenticatedUser();
+    const docRef = doc(this.firestore, `${this.collectionName}/${item.id}`);
+    try {
+      await setDoc(docRef, item);
+      return true;
+    } catch (e) {
+      console.error('Error updating item: ', e);
+      return false;
+    }
+  }
+
+  async deleteItem(id: string): Promise<boolean> {
+    await this.getAuthenticatedUser();
+    const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
+    try {
+      await deleteDoc(docRef);
+      return true;
+    } catch (e) {
+      console.error('Error deleting item: ', e);
+      return false;
+    }
   }
 }

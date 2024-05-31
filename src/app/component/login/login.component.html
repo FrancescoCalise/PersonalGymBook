@@ -1,4 +1,4 @@
-<div *ngIf="user$ | async as user; else loginForm">
+<div *ngIf="user; else loginForm">
     <p>Welcome, {{ user.displayName }}</p>
     <button (click)="logout()">Logout</button>
   </div>

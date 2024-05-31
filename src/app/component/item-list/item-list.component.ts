@@ -1,34 +1,31 @@
 import { Component, OnInit } from '@angular/core';
-import { FirestoreService, Item } from '../../services/firestore.service';
+import { FirestoreService } from '../../services/firestore.service';
+import { Item } from '../../interface/item';
 import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { SharedModule } from '../../shared/shared.module';
 
 @Component({
   selector: 'app-item-list',
   templateUrl: './item-list.component.html',
   styleUrls: ['./item-list.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [SharedModule]
 })
 export class ItemListComponent implements OnInit {
   items$: Observable<Item[]>;
 
-  constructor(private firestoreService: FirestoreService) {
-    this.items$ = this.firestoreService.getItems();
-    this.items$.subscribe(items => {
-      console.log('Items fetched from Firestore:', items);
-    }, error => {
-      console.error('Error fetching items:', error);
-    });
+  constructor(private firestoreService: FirestoreService<Item>) {
+    this.firestoreService.setCollectionName('items');
+    this.items$ = new Observable<Item[]>();
   }
 
-  ngOnInit(): void {}
+  async ngOnInit() {
+    this.items$ = await this.firestoreService.getItems();
+  }
 
   deleteItem(id: string): void {
     this.firestoreService.deleteItem(id).then(() => {
       console.log('Item deleted');
-    }).catch(error => {
-      console.error('Error deleting item:', error);
     });
   }
 }

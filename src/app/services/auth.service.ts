@@ -1,39 +1,58 @@
 import { Injectable } from '@angular/core';
-import { Auth, signInWithPopup, GoogleAuthProvider, signOut, authState, User } from '@angular/fire/auth';
-import { Observable, from, map } from 'rxjs';
+import { Auth, authState, signInWithPopup, GoogleAuthProvider, signOut } from '@angular/fire/auth';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
+import { RoleType } from '../interface/roles';
+
+export interface User {
+  displayName: string | null;
+  email: string | null;
+  uid: string;
+  emailVerified: boolean;
+  photoURL: string | null;
+  isAnonymous: boolean;
+  role: RoleType;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  user$: Observable<User>;
+  private userSubject: BehaviorSubject<User | null>;
+  public user$: Observable<User | null>;
 
-    constructor(private auth: Auth) {
-      this.user$ = authState(this.auth).pipe(
-        map(user => {
-          if (user) {
-            let u = user as User;
-            return {
-              displayName: u.displayName,
-              email: u.email,
-              // Mappa altre proprietà se necessario
-            } as User;
-          } else {
-            return null;
-          }
-        })
-      );
-   }
+  constructor(private auth: Auth) {
+    this.userSubject = new BehaviorSubject<User | null>(null);
+    this.user$ = this.userSubject.asObservable();
 
-  loginWithGoogle() {
-    return from(signInWithPopup(this.auth, new GoogleAuthProvider()));
+    authState(this.auth).pipe(
+      filter((user) => !!user), // Filtro gli stati nulli
+      map((user: any) => {
+        const currentUser: User = {
+          displayName: user.displayName,
+          email: user.email,
+          uid: user.uid,
+          emailVerified: user.emailVerified,
+          photoURL: user.photoURL,
+          isAnonymous: user.isAnonymous,
+          role: RoleType.User // Assuming a default role, modify as needed
+        };
+        this.userSubject.next(currentUser);
+        return currentUser;
+      })
+    ).subscribe();
   }
 
-  logout() {
-    return from(signOut(this.auth));
+  async loginWithGoogle() {
+    await signInWithPopup(this.auth, new GoogleAuthProvider());
   }
 
-  getUser() {
-    return this.user$;
+  async logout() {
+    await signOut(this.auth);
+    this.userSubject.next(null);
+  }
+
+  get currentUser(): User | null {
+    return this.userSubject.value;
   }
 }

@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
-import { FirestoreService, Item } from '../../services/firestore.service';
+import { Component, OnInit } from '@angular/core';
+import { FirestoreService } from '../../services/firestore.service';
+import { Item } from '../../interface/item';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Auth } from '@angular/fire/auth'; // Importa Auth
+import { Firestore } from 'firebase/firestore';
 
 @Component({
   selector: 'app-item-form',
@@ -12,32 +15,52 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
-export class ItemFormComponent {
+export class ItemFormComponent implements OnInit {
   itemForm: FormGroup;
+  itemId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private firestoreService: FirestoreService,
-    private router: Router
+    private firestoreService: FirestoreService<Item>,
+    private router: Router,
+    private route: ActivatedRoute,
+    private auth: Auth
   ) {
     this.itemForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required]
     });
+    this.firestoreService.setCollectionName('items');
   }
 
-  addItem() {
+  async ngOnInit() {
+    this.itemId = this.route.snapshot.paramMap.get('id');
+    if (this.itemId) {
+      await this.firestoreService.getItem(this.itemId)
+        .then(item => {
+          if (item) {
+            this.itemForm.patchValue(item);
+          }
+        });
+    }
+  }
+
+  saveItem() {
     if (this.itemForm.valid) {
-      const newItem: Item = this.itemForm.value;
-      console.log('Form is valid. Adding item:', newItem);
-      this.firestoreService.addItem(newItem).then(() => {
-        console.log('Item added successfully');
-        this.router.navigate(['/items']);
-      }).catch(error => {
-        console.error('Error adding item:', error);
-      });
-    } else {
-      console.log('Form is invalid:', this.itemForm);
+      const newItem: Item = {
+        ...this.itemForm.value
+      };
+
+      this.firestoreService.addItem(newItem).then(
+        (res: boolean) => {
+          if (res) {
+            console.log('Item added');
+            this.router.navigate(['/items']);
+          }
+        }).catch(error => {
+          console.error('Error adding item: ', error);
+        });
+
     }
   }
 }

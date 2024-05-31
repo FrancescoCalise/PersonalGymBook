@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Funzione per verificare se l'utente è un admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.type == 'admin';
+    }
+
+    // Regole per la collezione specifica
+    match /{document=**} {
+      // Permette qualsiasi operazione (lettura, scrittura, aggiornamento, cancellazione) se l'utente è il proprietario del documento o se è un admin
+      allow read, update, delete: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid != null || isAdmin());
+
+      // Permette di leggere l'intera collezione se l'utente è autenticato o se è un admin
+      allow list: if request.auth != null || isAdmin();
+    }
+  }
+}
