@@ -2,10 +2,8 @@ import { Component } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { SharedModule } from '../../shared/shared.module';
-import { FirestoreService } from '../../services/firestore.service';
 import { Role, RoleType } from '../../interface/roles';
-import { Observable, of } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
+import { FirestoreService } from '../../services/firestore.service';
 
 @Component({
   selector: 'app-login',
@@ -15,8 +13,7 @@ import { switchMap, catchError } from 'rxjs/operators';
   imports: [SharedModule]
 })
 export class LoginComponent {
-  user = this.authService.currentUser;
-  roles$: Observable<Role[]>;
+  isAuthLoginCompleted: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -24,40 +21,28 @@ export class LoginComponent {
     private firestoreService: FirestoreService<Role>
   ) {
     this.firestoreService.setCollectionName('roles');
-    this.roles$ = new Observable<Role[]>();
+    debugger;
   }
 
   async login() {
     try {
-      await this.authService.loginWithGoogle();
-      console.log('User logged in');
+      var userCredential = await this.authService.loginWithGoogle();
+      if(this.authService.isInLogin) {
+        debugger
+        let role = await this.firestoreService.getItem(userCredential.user.uid);
+        if(!role){
+          role = {
+            id: userCredential.user.uid,
+            type: RoleType.User
+          }
+          this.firestoreService.addItem(role);
+        }
+        this.authService.setRole(role);
+        this.authService.completeLogin();
+      }
 
-      const user = this.authService.currentUser;
-      if (user) {
-        this.firestoreService.setCollectionName('roles');
-        (await this.firestoreService.getItem(user.uid)).pipe(
-          switchMap((role: Role | undefined) => {
-            if (role) {
-              user.role = role.type;
-              return of(role);
-            } else {
-              let newRole: Role = {
-                id: user.uid,
-                type: RoleType.User,
-                ownerId: user.uid
-              };
-              return this.firestoreService.addItem(newRole).then(() => {
-                user.role = RoleType.User;
-                return newRole;
-              });
-            }
-          }),
-          catchError(error => {
-            console.error('Error fetching role: ', error);
-            return of(undefined);
-          })
-        ).subscribe();
-
+      this.isAuthLoginCompleted = this.authService.isAuthLoginCompleted();
+      if (this.isAuthLoginCompleted) {
         this.router.navigate(['/home']);
       } else {
         throw new Error('User is not authenticated');

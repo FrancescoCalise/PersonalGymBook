@@ -1,10 +1,10 @@
+// auth.service.ts
 import { Injectable } from '@angular/core';
-import { Auth, authState, signInWithPopup, GoogleAuthProvider, signOut } from '@angular/fire/auth';
+import { Auth, User, signInWithPopup, GoogleAuthProvider, signOut, UserCredential } from '@angular/fire/auth';
+import { Role, RoleType } from '../interface/roles';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
-import { RoleType } from '../interface/roles';
 
-export interface User {
+export interface PersonalUser {
   displayName: string | null;
   email: string | null;
   uid: string;
@@ -18,41 +18,86 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  private userSubject: BehaviorSubject<User | null>;
-  public user$: Observable<User | null>;
+  role: Role | null = null;
+  protected user: PersonalUser | null = null;
+  private userSubject: BehaviorSubject<PersonalUser | null>;
+  public user$: Observable<PersonalUser | null>;
 
-  constructor(private auth: Auth) {
-    this.userSubject = new BehaviorSubject<User | null>(null);
-    this.user$ = this.userSubject.asObservable();
+  public isInLogin: boolean = false;
+  public isLoginCompleted: boolean = false;
 
-    authState(this.auth).pipe(
-      filter((user) => !!user), // Filtro gli stati nulli
-      map((user: any) => {
-        const currentUser: User = {
-          displayName: user.displayName,
-          email: user.email,
-          uid: user.uid,
-          emailVerified: user.emailVerified,
-          photoURL: user.photoURL,
-          isAnonymous: user.isAnonymous,
-          role: RoleType.User // Assuming a default role, modify as needed
-        };
-        this.userSubject.next(currentUser);
-        return currentUser;
-      })
-    ).subscribe();
+  constructor(
+    private auth: Auth) {
+      this.userSubject = new BehaviorSubject<PersonalUser | null>(null);
+      this.user$ = this.userSubject.asObservable();
   }
 
-  async loginWithGoogle() {
-    await signInWithPopup(this.auth, new GoogleAuthProvider());
+  // Login con Google
+  async loginWithGoogle(): Promise<UserCredential> {
+    try {
+      debugger
+      let user = await signInWithPopup(this.auth, new GoogleAuthProvider());
+      this.isInLogin = true;
+      console.log('Partial Login con Google effettuato con successo');
+      return user;
+    } catch (error) {
+      console.error('Errore durante il login con Google: ', error);
+      throw new Error('Errore durante il login con Google');
+    }
+  }
+  
+  public setRole(role: Role) {
+    this.role = role;
+    this.mapFirebaseUser(this.auth.currentUser);
   }
 
-  async logout() {
-    await signOut(this.auth);
-    this.userSubject.next(null);
+  public completeLogin() {
+    
+    this.isInLogin = false;
+    this.isLoginCompleted = true;
+    this.userSubject.next(this.user);
   }
 
-  get currentUser(): User | null {
+  // Logout
+  async logout(): Promise<void> {
+    try {
+      await signOut(this.auth);
+      this.isInLogin = false;
+      this.isLoginCompleted = false;
+      this.userSubject.next(null);
+      console.log('Logout effettuato con successo');
+    } catch (error) {
+      console.error('Errore durante il logout: ', error);
+    }
+  }
+
+  public isAuthLoginCompleted(): boolean {
+    return this.isLoginCompleted;
+  }
+
+  public getCurrentUser(): PersonalUser | null {
     return this.userSubject.value;
+  }
+
+  private mapFirebaseUser(user: User | null): PersonalUser | null {
+    if (!user) return null;
+    let roleType = this.getTypeRole(this.role as Role);
+    return {
+      displayName: user.displayName,
+      email: user.email,
+      uid: user.uid,
+      emailVerified: user.emailVerified,
+      photoURL: user.photoURL,
+      isAnonymous: user.isAnonymous,
+      role: roleType
+    };
+  }
+
+  private getTypeRole(role: Role): RoleType {
+    return  role.type;
+  }
+
+  private onAuthStateChanged(){
+    // voglio c
   }
 }

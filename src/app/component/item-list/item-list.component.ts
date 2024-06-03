@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FirestoreService } from '../../services/firestore.service';
 import { Item } from '../../interface/item';
-import { Observable } from 'rxjs';
 import { SharedModule } from '../../shared/shared.module';
 
 @Component({
@@ -12,15 +11,15 @@ import { SharedModule } from '../../shared/shared.module';
   imports: [SharedModule]
 })
 export class ItemListComponent implements OnInit {
-  items$: Observable<Item[]>;
+  items: Item[];
 
   constructor(private firestoreService: FirestoreService<Item>) {
     this.firestoreService.setCollectionName('items');
-    this.items$ = new Observable<Item[]>();
+    this.items = [];
   }
 
   async ngOnInit() {
-    this.items$ = await this.firestoreService.getItems();
+    this.items = await this.firestoreService.getItems();
   }
 
   deleteItem(id: string): void {

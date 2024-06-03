@@ -1,8 +1,6 @@
-<div *ngIf="user; else loginForm">
-    <p>Welcome, {{ user.displayName }}</p>
-    <button (click)="logout()">Logout</button>
-  </div>
-  <ng-template #loginForm>
-    <button (click)="login()">Login with Google</button>
-  </ng-template>
-  
+<div *ngIf="isAuthLoginCompleted; else loginTemplate">
+
+</div>
+<ng-template #loginTemplate>
+  <button (click)="login()">Login con Google</button>
+</ng-template>

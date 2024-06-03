@@ -23,9 +23,8 @@ export class ItemFormComponent implements OnInit {
     private fb: FormBuilder,
     private firestoreService: FirestoreService<Item>,
     private router: Router,
-    private route: ActivatedRoute,
-    private auth: Auth
-  ) {
+    private route: ActivatedRoute
+    ) {
     this.itemForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required]
