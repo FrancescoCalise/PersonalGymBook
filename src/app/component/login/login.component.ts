@@ -21,7 +21,6 @@ export class LoginComponent {
     private firestoreService: FirestoreService<Role>
   ) {
     this.firestoreService.setCollectionName('roles');
-    debugger;
   }
 
   async login() {

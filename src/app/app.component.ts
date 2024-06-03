@@ -13,6 +13,5 @@ export class AppComponent {
   title = 'personal-gym-book';
 
   constructor() {
-    debugger;
   }
 }

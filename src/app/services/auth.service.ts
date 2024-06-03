@@ -37,6 +37,8 @@ export class AuthService {
     try {
       debugger
       let user = await signInWithPopup(this.auth, new GoogleAuthProvider());
+      let partialUser = this.mapFirebaseUser(user.user);
+      this.userSubject.next(partialUser);
       this.isInLogin = true;
       console.log('Partial Login con Google effettuato con successo');
       return user;
@@ -48,7 +50,7 @@ export class AuthService {
   
   public setRole(role: Role) {
     this.role = role;
-    this.mapFirebaseUser(this.auth.currentUser);
+    this.user = this.mapFirebaseUser(this.auth.currentUser);
   }
 
   public completeLogin() {
@@ -81,7 +83,7 @@ export class AuthService {
 
   private mapFirebaseUser(user: User | null): PersonalUser | null {
     if (!user) return null;
-    let roleType = this.getTypeRole(this.role as Role);
+    let roleType = this.role ? this.role.type : RoleType.User;
     return {
       displayName: user.displayName,
       email: user.email,
@@ -93,9 +95,7 @@ export class AuthService {
     };
   }
 
-  private getTypeRole(role: Role): RoleType {
-    return  role.type;
-  }
+
 
   private onAuthStateChanged(){
     // voglio c

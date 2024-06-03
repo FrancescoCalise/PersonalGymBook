@@ -16,11 +16,16 @@ export class FirestoreService<T extends BaseDocument> implements OnInit, OnDestr
     private firestore: Firestore,
     private authService: AuthService
   ) {
-    this.user = this.authService.getCurrentUser();
-
+    this.userSubscription = this.authService.user$.subscribe(user => {
+      this.user = user;
+    });
+    
+    if(!this.user)
+      this.user = this.authService.getCurrentUser();
   }
 
   ngOnInit(): void {
+    debugger;
     this.userSubscription = this.authService.user$.subscribe(user => {
       this.user = user;
     });
@@ -45,12 +50,18 @@ export class FirestoreService<T extends BaseDocument> implements OnInit, OnDestr
 
   async getItem(id: string): Promise<T | null> {
     const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? ({ id: docSnap.id, ...docSnap.data() } as T) : null;
+    try{
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? ({ id: docSnap.id, ...docSnap.data() } as T) : null;
+    }catch(e){
+      throw new Error('Error getting item: ' + e);
+    }
+    
   }
 
   async addItem(item: T): Promise<boolean> {
     try {
+      debugger;
       const colRef = collection(this.firestore, this.collectionName);
       item.ownerId = this.user?.uid;
       let data = await addDoc(colRef, item);
