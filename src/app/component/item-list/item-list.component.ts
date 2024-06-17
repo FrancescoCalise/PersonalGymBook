@@ -22,9 +22,11 @@ export class ItemListComponent implements OnInit {
     this.items = await this.firestoreService.getItems();
   }
 
-  deleteItem(id: string): void {
-    this.firestoreService.deleteItem(id).then(() => {
+  deleteItem(id?: string): void {
+    let deleteId = id != null ? id : null;
+    if(deleteId){
+    this.firestoreService.deleteItem(deleteId).then(() => {
       console.log('Item deleted');
-    });
+    });}
   }
 }

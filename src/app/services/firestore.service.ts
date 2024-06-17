@@ -1,4 +1,4 @@
-import { Firestore, collection, query, where, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp, QueryFieldFilterConstraint } from '@angular/fire/firestore';
 import { Injectable, OnDestroy, OnInit } from '@angular/core';
 import { BaseDocument } from '../interface/models';
 import { AuthService, PersonalUser } from './auth.service';
@@ -25,7 +25,6 @@ export class FirestoreService<T extends BaseDocument> implements OnInit, OnDestr
   }
 
   ngOnInit(): void {
-    debugger;
     this.userSubscription = this.authService.user$.subscribe(user => {
       this.user = user;
     });
@@ -56,16 +55,33 @@ export class FirestoreService<T extends BaseDocument> implements OnInit, OnDestr
     }catch(e){
       throw new Error('Error getting item: ' + e);
     }
-    
   }
 
-  async addItem(item: T): Promise<boolean> {
+  async getItemsWhere(where: QueryFieldFilterConstraint): Promise<T[]> {
+    const colRef = collection(this.firestore, this.collectionName);
+    const q = query(colRef, where);
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
+  }
+
+  async addItem(item: T, forceId?:string): Promise<boolean> {
     try {
-      debugger;
       const colRef = collection(this.firestore, this.collectionName);
       item.ownerId = this.user?.uid;
-      let data = await addDoc(colRef, item);
-      return data ? true : false;
+      item.creationDate = serverTimestamp();
+      item.lastUpdateDate = serverTimestamp();
+      let haveId = forceId !== undefined;
+      let docRef:any = null;
+
+      if(haveId){
+        docRef = doc(colRef, forceId)
+      }else{
+        docRef = doc(colRef);
+      }
+      if(docRef === null) throw new Error('Error adding item: docRef is null');
+
+      await setDoc(docRef,{...item});
+      return true;
     } catch (e) {
       console.error('Error adding item: ', e);
       return false;
@@ -73,6 +89,7 @@ export class FirestoreService<T extends BaseDocument> implements OnInit, OnDestr
   }
 
   async updateItem(item: T): Promise<boolean> {
+    item.lastUpdateDate = serverTimestamp();
     const docRef = doc(this.firestore, `${this.collectionName}/${item.id}`);
     try {
       await setDoc(docRef, item);

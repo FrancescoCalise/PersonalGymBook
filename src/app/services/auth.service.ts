@@ -35,7 +35,6 @@ export class AuthService {
   // Login con Google
   async loginWithGoogle(): Promise<UserCredential> {
     try {
-      debugger
       let user = await signInWithPopup(this.auth, new GoogleAuthProvider());
       let partialUser = this.mapFirebaseUser(user.user);
       this.userSubject.next(partialUser);

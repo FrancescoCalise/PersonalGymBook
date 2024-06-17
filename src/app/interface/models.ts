@@ -1,5 +1,9 @@
+import { FieldValue } from "firebase/firestore";
+
 export interface BaseDocument {
-    id: string;
+    id?: string;
     ownerId?: string;
+    creationDate?: FieldValue;
+    lastUpdateDate?: FieldValue;
   }
   

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { SharedModule } from '../../shared/shared.module';
 import { Role, RoleType } from '../../interface/roles';
 import { FirestoreService } from '../../services/firestore.service';
+import { QueryFieldFilterConstraint, where } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-login',
@@ -26,15 +27,13 @@ export class LoginComponent {
   async login() {
     try {
       var userCredential = await this.authService.loginWithGoogle();
-      if(this.authService.isInLogin) {
-        debugger
-        let role = await this.firestoreService.getItem(userCredential.user.uid);
+      if(this.authService.isInLogin) {       
+        let role = (await this.firestoreService.getItem(userCredential.user.uid));
         if(!role){
           role = {
-            id: userCredential.user.uid,
             type: RoleType.User
           }
-          this.firestoreService.addItem(role);
+          this.firestoreService.addItem(role, userCredential.user.uid);
         }
         this.authService.setRole(role);
         this.authService.completeLogin();
