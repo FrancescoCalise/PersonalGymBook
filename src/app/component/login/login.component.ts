@@ -35,7 +35,7 @@ export class LoginComponent {
           }
           this.firestoreService.addItem(role, userCredential.user.uid);
         }
-        this.authService.setRole(role);
+        this.authService.setRoleType(role.type);
         this.authService.completeLogin();
       }
 

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Auth, User, signInWithPopup, GoogleAuthProvider, signOut, UserCredential } from '@angular/fire/auth';
 import { Role, RoleType } from '../interface/roles';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { CacheStorageService } from './cache-storage.service';
 
 export interface PersonalUser {
   displayName: string | null;
@@ -18,7 +19,7 @@ export interface PersonalUser {
   providedIn: 'root'
 })
 export class AuthService {
-  role: Role | null = null;
+  roleType: RoleType | null = null;
   protected user: PersonalUser | null = null;
   private userSubject: BehaviorSubject<PersonalUser | null>;
   public user$: Observable<PersonalUser | null>;
@@ -27,7 +28,8 @@ export class AuthService {
   public isLoginCompleted: boolean = false;
 
   constructor(
-    private auth: Auth) {
+    private auth: Auth,
+    private cacheService: CacheStorageService) {
       this.userSubject = new BehaviorSubject<PersonalUser | null>(null);
       this.user$ = this.userSubject.asObservable();
   }
@@ -47,8 +49,8 @@ export class AuthService {
     }
   }
   
-  public setRole(role: Role) {
-    this.role = role;
+  public setRoleType(roleType: RoleType) {
+    this.roleType = roleType;
     this.user = this.mapFirebaseUser(this.auth.currentUser);
   }
 
@@ -56,6 +58,7 @@ export class AuthService {
     
     this.isInLogin = false;
     this.isLoginCompleted = true;
+    this.cacheService.setItem(this.cacheService.userInfoKey, this.user);
     this.userSubject.next(this.user);
   }
 
@@ -82,7 +85,7 @@ export class AuthService {
 
   private mapFirebaseUser(user: User | null): PersonalUser | null {
     if (!user) return null;
-    let roleType = this.role ? this.role.type : RoleType.User;
+    let roleType = this.roleType ? this.roleType : RoleType.User;
     return {
       displayName: user.displayName,
       email: user.email,
@@ -94,9 +97,13 @@ export class AuthService {
     };
   }
 
-
-
-  private onAuthStateChanged(){
-    // voglio c
+  public setFromCache(user: PersonalUser){
+   if(user){
+    let role = user.role;
+    this.setRoleType(role);
+    this.user = user;
+    
+    this.completeLogin();
+   }
   }
 }
